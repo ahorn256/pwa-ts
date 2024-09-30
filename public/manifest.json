@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Books List",
+  "name": "Books List PWA",
+  "description": "Books management app.",
   "icons": [
     {
       "src": "favicon.ico",
