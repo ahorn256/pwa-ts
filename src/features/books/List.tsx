@@ -34,20 +34,24 @@ const List:React.FC<Props> = ({ filterByTitle }) => {
   useEffect(() => {(async () => {
     let data:Book[] = [];
 
-    // TODO: properly detect offline mode, "navigator.onLine" is not reliable
-    if(navigator.onLine) {
-      try {
-        setIsPending(true);
-        data = await fetchBooks();
-        db.books.clear();
-        db.books.bulkAdd(data);
-      } catch(err) {
-        setError(convertToFetchError(err));
-      } finally {
-        setIsPending(false);
+    try {
+      setIsPending(true);
+      setError(null);
+      data = await fetchBooks();
+      db.books.clear();
+      db.books.bulkAdd(data);
+    } catch(err) {
+      const fetchErr = convertToFetchError(err);
+
+      // offline mode
+      if(!fetchErr.status) {
+        data = await db.books.toArray();
+        setError({ message: `Failed to fetch - Show cached data` });
+      } else {
+        setError(fetchErr);
       }
-    } else {
-      data = await db.books.toArray();
+    } finally {
+      setIsPending(false);
     }
 
     setBooks(data);

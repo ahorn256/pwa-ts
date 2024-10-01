@@ -1,3 +1,4 @@
+import { FetchError } from "../../FetchError";
 import { Book, InputBook } from "./Book";
 
 export async function fetchBooks():Promise<Book[]> {
@@ -11,7 +12,7 @@ export async function fetchBooks():Promise<Book[]> {
     const data = await response.json();
     return data;
   } else {
-    throw new Error(`Couldn't fetch books`);
+    throw new FetchError(`Couldn't fetch books`, response.status);
   }
 };
 
@@ -27,7 +28,7 @@ export async function deleteBook(id: string) {
   if(response.ok) {
     return id;
   } else {
-    throw new Error(`Couldn't delete the book with the id "${id}".`);
+    throw new FetchError(`Couldn't delete the book with the id "${id}".`, response.status);
   }
 }
 
@@ -48,6 +49,6 @@ export async function saveBook(book: InputBook):Promise<Book> {
   if(response.ok) {
     return await response.json();
   } else {
-    throw new Error(`Couldn't save the book "${book.title}"`);
+    throw new FetchError(`Couldn't save the book "${book.title}"`, response.status);
   }
 }
