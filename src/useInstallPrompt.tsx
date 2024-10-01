@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 
+export interface UserChoice {
+  outcome: 'accepted' | 'dismissed';
+  platform: string;
+};
+
 export interface BeforeInstallPromptEvent extends Event {
   platforms: string[];
-  userChoice: Promise<{
-    outcome: 'accepted' | 'dismissed',
-    platform: string,
-  }>;
-  prompt(): Promise<void>,
+  userChoice: Promise<UserChoice>;
+  prompt(): Promise<UserChoice>,
 };
 
 function useInstallPrompt():BeforeInstallPromptEvent|null {
