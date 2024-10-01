@@ -1,11 +1,13 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { IconButton, Paper, Table, TableBody, TableCell, TableHead, TableRow, TableSortLabel } from "@mui/material";
 import { Delete, Edit, Star, StarBorder } from "@mui/icons-material";
 import { Book, BookSort, BookSortIn } from "./Book";
 import { useNavigate } from "react-router-dom";
 import { filterBooks, sortBooks } from "./booksHelpers";
 import ErrorMessage from "../../ErrorMessage";
-import { IFetchError } from "../../FetchError";
+import { convertToFetchError, IFetchError } from "../../FetchError";
+import { fetchBooks } from "./booksAPI";
+import { db } from "./booksDB";
 
 type Props = {
   filterByTitle?: string,
@@ -18,30 +20,6 @@ const tableHead = {
   rating: 'Bewertung',
 };
 
-const initialBooks = [
-  {
-    "id": "1",
-    "title": "JavaScript - das umfassende Handbuch",
-    "author": "Philip Ackermann",
-    "isbn": "978-3836286299",
-    "rating": 5
-  },
-  {
-    "id": "2",
-    "title": "Clean Code",
-    "author": "Robert Martin",
-    "isbn": "978-0132350884",
-    "rating": 4
-  },
-  {
-    "id": "3",
-    "title": "Design Patterns",
-    "author": "Erich Gamma",
-    "isbn": "978-0201633610",
-    "rating": 5
-  }
-];
-
 const List:React.FC<Props> = ({ filterByTitle }) => {
   const [ sort, setSort ] = useState<BookSort>({
     orderBy: 'title',
@@ -49,9 +27,31 @@ const List:React.FC<Props> = ({ filterByTitle }) => {
   });
   const navigate = useNavigate();
 
-  const [ books ] = useState<Book[]|null>(initialBooks);
-  const [ isPending ] = useState(false);
-  const [ error ] = useState<IFetchError|null>(null);
+  const [ books, setBooks ] = useState<Book[]|null>([]);
+  const [ isPending, setIsPending ] = useState(false);
+  const [ error, setError ] = useState<IFetchError|null>(null);
+
+  useEffect(() => {(async () => {
+    let data:Book[] = [];
+
+    // TODO: properly detect offline mode, "navigator.onLine" is not reliable
+    if(navigator.onLine) {
+      try {
+        setIsPending(true);
+        data = await fetchBooks();
+        db.books.clear();
+        db.books.bulkAdd(data);
+      } catch(err) {
+        setError(convertToFetchError(err));
+      } finally {
+        setIsPending(false);
+      }
+    } else {
+      data = await db.books.toArray();
+    }
+
+    setBooks(data);
+  })()}, []);
 
   const filteredBooks = useMemo<Book[]>(() =>
     books ? sortBooks(
