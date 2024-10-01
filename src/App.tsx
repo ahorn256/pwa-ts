@@ -1,10 +1,13 @@
-import React from 'react';
 import logo from './logo.svg';
 import './App.css';
+import useInstallPrompt from './useInstallPrompt';
 
 function App() {
+  const installPrompt = useInstallPrompt();
+  
   return (
     <div className="App">
+      <button onClick={() => installPrompt && installPrompt.prompt()}>install</button>
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
